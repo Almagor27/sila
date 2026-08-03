@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>График Жизни — СИЛА</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
+            background: #0b0b1a;
+            color: #d0d5e0;
+            min-height: 100vh;
+            padding: 12px;
+            -webkit-text-size-adjust: 100%;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(20, 20, 40, 0.85);
+            border-radius: 30px;
+            padding: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.08);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.2em;
+            background: linear-gradient(135deg, #f6d365, #fda085);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 4px;
+            font-weight: 300;
+        }
+        .subtitle {
+            text-align: center;
+            color: #6a7a8e;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            padding-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 4px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: #6a7a8e;
+            padding: 8px 14px;
+            border-radius: 16px 16px 0 0;
+            cursor: pointer;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            font-weight: 500;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tab-btn:hover { color: #b0c0d0; background: rgba(255,255,255,0.03); }
+        .tab-btn.active { color: #f6d365; background: rgba(255,215,0,0.06); border-bottom: 2px solid #f6d365; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            background: rgba(0,0,0,0.35);
+            padding: 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 16px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .input-group label {
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7a8aa0;
+            font-weight: 600;
+        }
+        .input-group input {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #2a2a44;
+            padding: 10px 12px;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            width: 100px;
+            transition: 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .input-group input:focus {
+            border-color: #f6d365;
+            outline: none;
+            box-shadow: 0 0 20px rgba(246, 211, 101, 0.08);
+        }
+        .btn {
+            background: linear-gradient(135deg, #f6d365, #fda085);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 24px;
+            font-weight: 700;
+            color: #0b0b1a;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            align-self: flex-end;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-secondary {
+            background: #2a2a4a;
+            color: #b0bdd0;
+            padding: 6px 16px;
+            font-size: 0.7rem;
+        }
+        .btn-secondary:active { background: #3a3a5a; }
+
+        .btn-png {
+            background: rgba(100, 200, 255, 0.1);
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            color: #64c8ff;
+            padding: 6px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: 0.3s;
+            font-weight: 500;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-png:active { background: rgba(100, 200, 255, 0.2); }
+
+        .presets {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 8px 0 12px;
+        }
+        .presets .btn {
+            background: rgba(255,215,0,0.06);
+            border: 1px solid rgba(255,215,0,0.1);
+            color: #b0c0d0;
+            padding: 4px 12px;
+            font-size: 0.65rem;
+            text-transform: none;
+            letter-spacing: 0.3px;
+            font-weight: 400;
+        }
+        .presets .btn:active { background: rgba(255,215,0,0.15); color: #f6d365; }
+
+        .nav-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 12px 0 8px;
+        }
+        .range-label {
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            color: #8a9ab0;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .chart-wrapper {
+            background: rgba(0,0,0,0.45);
+            border-radius: 18px;
+            padding: 12px;
+            overflow-x: auto;
+            border: 1px solid rgba(255,255,255,0.03);
+            margin: 10px 0 14px;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+        }
+        .chart-wrapper .png-btn-wrap {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            z-index: 10;
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            image-rendering: auto;
+        }
+
+        .stats-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 20px;
+            justify-content: center;
+            background: rgba(0,0,0,0.3);
+            padding: 10px 16px;
+            border-radius: 20px;
+            margin: 8px 0 12px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .stat-item { font-size: 0.75rem; color: #9aabbf; }
+        .stat-item .value { font-weight: 700; color: #f6d365; }
+
+        .vector-info {
+            background: rgba(255, 215, 0, 0.04);
+            border: 1px solid rgba(255, 215, 0, 0.08);
+            border-radius: 16px;
+            padding: 10px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px 20px;
+            margin: 8px 0 12px;
+        }
+        .vector-info .label { color: #7a8aa0; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; }
+        .vector-info .type { font-weight: 700; font-size: 0.95rem; }
+
+        .key-block {
+            text-align: center;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            padding: 8px;
+            background: rgba(255,215,0,0.04);
+            border-radius: 14px;
+            border: 1px solid rgba(255,215,0,0.06);
+            margin-bottom: 10px;
+        }
+        .key-block span { color: #8a9ab0; font-weight: 300; }
+        .cycle-info { text-align: center; color: #6a7a8e; font-size: 0.8rem; }
+
+        .toggle-btn {
+            background: rgba(255,215,0,0.06);
+            border: 1px solid rgba(255,215,0,0.12);
+            color: #f6d365;
+            padding: 10px 20px;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            width: 100%;
+            text-align: center;
+            font-weight: 600;
+            margin: 8px 0 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .toggle-btn:active { background: rgba(255,215,0,0.12); }
+        .toggle-content { display: none; margin-top: 12px; }
+        .toggle-content.open { display: block; }
+
+        .scroll {
+            background: rgba(0,0,0,0.5);
+            border-radius: 18px;
+            padding: 20px;
+            border-left: 4px solid #f6d365;
+            position: relative;
+        }
+        .scroll .title { font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; }
+        .scroll .sub { color: #7a8aa0; font-size: 0.75rem; margin-bottom: 10px; }
+
+        .section {
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin: 10px 0;
+            border-left: 3px solid rgba(255,255,255,0.06);
+        }
+        .section .s-title {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            margin-bottom: 2px;
+            color: #8a9ab0;
+        }
+        .section p { line-height: 1.6; font-size: 0.85rem; }
+        .section.light { border-left-color: #66dd88; }
+        .section.light .s-title { color: #66dd88; }
+        .section.shadow { border-left-color: #ff6b6b; }
+        .section.shadow .s-title { color: #ff6b6b; }
+        .section.task { border-left-color: #f6d365; }
+        .section.task .s-title { color: #f6d365; }
+        .section.mission { border-left-color: #7c6df0; }
+        .section.mission .s-title { color: #7c6df0; }
+        .section.marriage { border-left-color: #ff8a9b; }
+        .section.marriage .s-title { color: #ff8a9b; }
+
+        .warning-box {
+            background: rgba(255, 107, 107, 0.06);
+            border: 1px solid rgba(255, 107, 107, 0.12);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin: 4px 0;
+        }
+        .warning-box .w-title { color: #ff8a9b; font-weight: 700; }
+
+        .profile-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0 4px;
+        }
+        .profile-tags span {
+            background: rgba(255,255,255,0.04);
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            border: 1px solid rgba(255,255,255,0.04);
+            color: #b0c0d0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 16px;
+            margin-top: 14px;
+        }
+        .panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .panel h3 {
+            color: #f6d365;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
+        .planet-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+            margin: 2px 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .planet-card:active { background: rgba(255,255,255,0.06); }
+        .planet-card.active { background: rgba(246, 211, 101, 0.06); border-color: rgba(246, 211, 101, 0.15); }
+        .planet-card .symbol { font-size: 1.4rem; width: 36px; text-align: center; }
+        .planet-card .name { font-weight: 600; font-size: 0.85rem; }
+        .planet-card.inactive { opacity: 0.25; }
+        .planet-card.inactive .name { color: #5a6a7e; }
+
+        .detail-panel { min-height: 180px; }
+        .detail-panel .desc { color: #c0cde0; line-height: 1.6; font-size: 0.85rem; }
+        .traits { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+        .traits .positive { color: #66dd88; }
+        .traits .negative { color: #ff6b6b; }
+
+        /* АРХИВ */
+        .archive-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            background: rgba(0,0,0,0.25);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .archive-table th {
+            background: rgba(255,215,0,0.06);
+            color: #f6d365;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.55rem;
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .archive-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.03); color: #c0cde0; }
+        .archive-table tr:active td { background: rgba(255,215,0,0.04); }
+        .archive-table .load-btn {
+            background: rgba(255,215,0,0.08);
+            border: none;
+            color: #f6d365;
+            padding: 2px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.6rem;
+            transition: 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .archive-table .load-btn:active { background: rgba(255,215,0,0.2); }
+        .archive-search {
+            margin-bottom: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .archive-search input {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid #2a2a44;
+            padding: 8px 14px;
+            border-radius: 12px;
+            color: white;
+            flex: 1;
+            min-width: 150px;
+            font-size: 0.85rem;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .archive-search input:focus { border-color: #f6d365; outline: none; }
+
+        .planet-card-big {
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
+        }
+        .planet-card-big .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .planet-card-big .header .symbol { font-size: 2rem; }
+        .planet-card-big .header .name { font-size: 1.1rem; font-weight: 600; }
+        .planet-card-big .direct { color: #66dd88; font-size: 0.8rem; line-height: 1.5; }
+        .planet-card-big .distorted { color: #ff6b6b; font-size: 0.8rem; line-height: 1.5; margin-top: 6px; }
+        .planet-card-big .gender-tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.05);
+            padding: 2px 10px;
+            border-radius: 16px;
+            font-size: 0.55rem;
+            color: #8a9ab0;
+        }
+
+        .author-section {
+            margin-top: 20px;
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255,215,0,0.08);
+            text-align: center;
+            background: rgba(0,0,0,0.2);
+            border-radius: 16px;
+        }
+        .author-section .author-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #f6d365;
+            letter-spacing: 1px;
+        }
+        .author-section .author-title {
+            color: #8a9ab0;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            margin: 2px 0 8px;
+        }
+        .author-section .author-contacts {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .author-section .author-contacts a {
+            color: #b0c0d0;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 0.8rem;
+            border-bottom: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .author-section .author-contacts a:active { color: #f6d365; }
+        .wa-btn {
+            background: rgba(37, 211, 102, 0.15);
+            padding: 6px 16px;
+            border-radius: 24px;
+            border: 1px solid rgba(37, 211, 102, 0.2);
+            transition: 0.3s;
+        }
+        .wa-btn:active { background: rgba(37, 211, 102, 0.25); }
+
+        @media (max-width: 700px) {
+            .container { padding: 12px; }
+            .info-grid { grid-template-columns: 1fr; }
+            .input-group input { width: 80px; }
+            .btn { width: 100%; justify-content: center; font-size: 0.8rem; padding: 10px; }
+            .author-section .author-contacts { flex-direction: column; gap: 6px; }
+            .tabs { flex-wrap: wrap; }
+            .tab-btn { flex: 1; text-align: center; font-size: 0.65rem; padding: 6px 8px; }
+            .chart-wrapper .png-btn-wrap { position: relative; top: auto; right: auto; text-align: right; margin-bottom: 6px; }
+            .presets .btn { font-size: 0.55rem; padding: 3px 8px; }
+            h1 { font-size: 1.6em; }
+            .stat-item { font-size: 0.65rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>✦ ГРАФИК ЖИЗНИ ✦</h1>
+    <div class="subtitle">СИЛА — Система Идентификации Личности Астрологическая</div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-chart" onclick="switchTab('tab-chart')">📊 График</button>
+        <button class="tab-btn" data-tab="tab-archive" onclick="switchTab('tab-archive')">📚 Архив</button>
+        <button class="tab-btn" data-tab="tab-planets" onclick="switchTab('tab-planets')">🌌 Планеты</button>
+    </div>
+
+    <!-- ===== ВКЛАДКА: ГРАФИК ===== -->
+    <div class="tab-content active" id="tab-chart">
+        <div class="input-area">
+            <div class="input-group"><label>📅 День</label><input type="number" inputmode="numeric" id="day" value="30" min="1" max="31"></div>
+            <div class="input-group"><label>📆 Месяц</label><input type="number" inputmode="numeric" id="month" value="5" min="1" max="12"></div>
+            <div class="input-group"><label>📌 Год</label><input type="number" inputmode="numeric" id="year" value="1706" min="1700" max="2100"></div>
+            <button class="btn" onclick="buildChart()">🔮 РАСКРЫТЬ</button>
+        </div>
+
+        <div class="presets">
+            <button class="btn" onclick="setDate(30,5,1706)">⚜️ Пётр I</button>
+            <button class="btn" onclick="setDate(15,8,1769)">👑 Наполеон</button>
+            <button class="btn" onclick="setDate(2,5,1729)">👸 Екатерина II</button>
+            <button class="btn" onclick="setDate(6,6,1799)">📖 Пушкин</button>
+            <button class="btn" onclick="setDate(11,11,1821)">📚 Достоевский</button>
+            <button class="btn" onclick="setDate(22,4,1870)">🔨 Ленин</button>
+            <button class="btn" onclick="setDate(14,3,1879)">🧠 Эйнштейн</button>
+            <button class="btn" onclick="setDate(1,6,1926)">🎬 Мэрилин</button>
+            <button class="btn" onclick="setDate(7,10,1952)">🏛️ Путин</button>
+        </div>
+
+        <div class="nav-controls">
+            <button class="btn btn-secondary" onclick="shiftYears(-10)">◀ 10</button>
+            <button class="btn btn-secondary" onclick="shiftYears(-1)">◀ 1</button>
+            <span class="range-label" id="rangeLabel">Годы: —</span>
+            <button class="btn btn-secondary" onclick="shiftYears(1)">1 ▶</button>
+            <button class="btn btn-secondary" onclick="shiftYears(10)">10 ▶</button>
+        </div>
+
+        <div class="key-block">🔑 Ключевое число: <span id="keyValue">—</span></div>
+        <div class="cycle-info" id="cycleInfo"></div>
+
+        <div class="chart-wrapper" id="chartWrapper">
+            <div class="png-btn-wrap">
+                <button class="btn-png" onclick="exportPNG()">🖼️ PNG</button>
+            </div>
+            <canvas id="chartCanvas"></canvas>
+        </div>
+
+        <div class="vector-info">
+            <span class="label">🧭 Вектор:</span>
+            <span class="type" id="vectorType">—</span>
+            <span style="color:#7a8aa0;font-size:0.8rem;" id="vectorDesc"></span>
+        </div>
+
+        <div class="stats-bar" id="statsBar"></div>
+
+        <button class="toggle-btn" onclick="toggleAnalysis()">📜 Показать анализ</button>
+        <div class="toggle-content" id="analysisContent">
+            <div class="scroll" id="deepScroll">
+                <div class="title" id="scrollTitle">⚡ Глубинный свиток</div>
+                <div class="sub" id="scrollSub">Нажмите на планету слева</div>
+                <div id="scrollContent"></div>
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="panel">
+                <h3>🌌 Активные планеты</h3>
+                <div id="planetList"></div>
+            </div>
+            <div class="panel detail-panel">
+                <h3>📖 Характеристика</h3>
+                <div id="planetDetail"><p style="color:#6a7a8e;font-size:0.8rem;">Нажмите на планету слева</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ВКЛАДКА: АРХИВ ===== -->
+    <div class="tab-content" id="tab-archive">
+        <div style="margin-bottom:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center;">
+            <h2 style="color:#f6d365;font-weight:300;letter-spacing:1px;font-size:1.1rem;">📚 Исторические личности</h2>
+            <span style="color:#6a7a8e;font-size:0.7rem;">Нажмите на строку</span>
+        </div>
+        <div class="archive-search">
+            <input type="text" id="archiveSearch" placeholder="🔍 Поиск..." oninput="filterArchive()">
+            <button class="btn" onclick="document.getElementById('archiveSearch').value='';filterArchive();" style="padding:6px 16px;font-size:0.7rem;">Сброс</button>
+        </div>
+        <div style="overflow-x:auto; -webkit-overflow-scrolling: touch;">
+            <table class="archive-table" id="archiveTable">
+                <thead><tr><th>Имя</th><th>Дата</th><th>Ключ</th><th>Импульс</th><th>Доминанта</th><th>Миссия</th><th style="text-align:center;">Загрузить</th></tr></thead>
+                <tbody id="archiveBody"></tbody>
+            </table>
+        </div>
+        <div style="margin-top:8px;color:#6a7a8e;font-size:0.7rem;text-align:center;" id="archiveCount"></div>
+    </div>
+
+    <!-- ===== ВКЛАДКА: ПЛАНЕТЫ ===== -->
+    <div class="tab-content" id="tab-planets">
+        <h2 style="color:#f6d365;font-weight:300;letter-spacing:1px;font-size:1.1rem;margin-bottom:12px;">🌌 Характеристики планет</h2>
+        <p style="color:#7a8aa0;font-size:0.8rem;margin-bottom:14px;">
+            <span style="color:#66dd88;">Альтруизм (отдача)</span> и <span style="color:#ff6b6b;">эгоизм (получение)</span>.
+            Степень контроля эгоизма определяет удаление от искажённых качеств.
+        </p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;" id="planetsHandbook"></div>
+    </div>
+
+    <!-- ===== АВТОР ===== -->
+    <div class="author-section">
+        <div class="author-name">© А. Матвеев</div>
+        <div class="author-title">СИЛА — Система Идентификации Личности Астрологическая</div>
+        <div class="author-contacts">
+            <a href="https://wa.me/79261234567?text=Здравствуйте!%20Хочу%20узнать%20больше%20о%20системе%20СИЛА" target="_blank" class="wa-btn">
+                💬 WhatsApp
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===================================================================
+    //  ПЛАНЕТЫ
+    // ===================================================================
+    const PLANETS = [
+        { code:9, name:'Солнце', symbol:'☀', color:'#FFD700', gender:'мужское',
+          direct: 'Активность, яркость, мужественность, внутренняя устойчивость, жизненная энергия, цельность, достоинство, самостоятельность, независимость, гордость, творческая сила, артистизм, авторитетность, щедрость, любовь к покровительству, готовность помогать. Любит роскошь, удовольствия, развлечения, часто расточителен, тяготеет к отцу, старается подражать именно ему.',
+          distorted: 'Тщеславие, деспотизм, авторитарность, любовь к мишуре, пышности, церемониям, напыщенность.',
+          task: 'Интеграция лидерства с заботой о других. Контроль гордыни.' },
+        { code:8, name:'Луна', symbol:'☽', color:'#C0C0C0', gender:'женское',
+          direct: 'Пластичность, изменчивость, неустойчивость, чувствительность, восприимчивость, впечатлительность. Не собрана, не любит дисциплины, мечтательна и капризна, сентиментальна, тяготеет к дому, семье, домашнему очагу, родителям (преимущественно к матери). Не слишком самостоятельна, предпочитает, чтобы о ней заботились, но очень привязана к детям, младшим братьям и сёстрам, готова заботиться о них из последних сил. Обладает крепкой волей к жизни, способностью выживать в самых тяжелых кризисах, подниматься после них, приходить в себя и всё начинать заново.',
+          distorted: 'Лень, несобранность, истеричность, медлительность, рассеянность, необязательность.',
+          task: 'Интеграция заботы о других с самодисциплиной. Контроль лени.' },
+        { code:7, name:'Меркурий', symbol:'☿', color:'#00CED1', gender:'биполярен',
+          direct: 'Подвижность, восприимчивость, любознательность, хорошая память, пластичность, легкость, способность быстро переключаться с одного действия на другое, ловкость, стремление к согласованию разных точек зрения (отсюда готовность к компромиссу), уступчивость, рассудочность, бесстрастность. Хватается за любую возможность, чтобы довести дела до конца, но обычно не имеет на это сил.',
+          distorted: 'Беспринципность, азартность, болтливость, любовь к слухам, сплетням, пустое любопытство.',
+          task: 'Использовать ум для созидания, а не для манипуляции. Контроль болтливости.' },
+        { code:6, name:'Венера', symbol:'♀', color:'#FF69B4', gender:'женское',
+          direct: 'Эмоциональность, серьёзность, чувство красоты, формы, тонкий вкус, элегантность, обаяние, привлекательность, сексуальность. Любит комфорт, развлечения. Привязана к друзьям, дружелюбна, но очень осторожна в выборе друзей. Обладает чувством справедливости. Внешне пластична, миролюбива, избегает конфликтов, романтична, склонна жалеть себя, быстро выходит из депрессии.',
+          distorted: 'Вялость, чувствительность, безжалостность, упрямство.',
+          task: 'Любить без условий. Контроль ревности и зависимости.' },
+        { code:5, name:'Марс', symbol:'♂', color:'#FF4500', gender:'мужское',
+          direct: 'Активность, напористость, импульсивность, упорство, прямота (доходящая до грубости), энтузиазм, смелость, рвение в достижении целей. Самоуверен, любит риск, полон сил, легко возбудим, вспыльчив, нетерпим, страстен и беззаботен. Любит соревноваться, стремится быть первым, стремится к лидерству, не терпит внешних ограничений. Готов защитить своё от посягательств.',
+          distorted: 'Конфликтность, агрессивность, кровожадность, беспощадность, грубость, вульгарность, эгоизм.',
+          task: 'Направить энергию на созидание, а не на разрушение. Контроль агрессии.' },
+        { code:4, name:'Юпитер', symbol:'♃', color:'#FFA500', gender:'мужское',
+          direct: 'Проявленная важность и цельность, спокойная уверенность, импозантность, респектабельность, уравновешенность, неторопливая походка, добродушная улыбка. Любит покровительствовать младшим, помогать тем, кто обращается за помощью, любит компании, знает толк в еде и напитках. Одевается в самое престижное, но несколько неряшлив. Самолюбив, но скрывает это, для него важно мнение окружающих. Упорен в достижении целей, умеет видеть общее, не останавливаясь на деталях.',
+          distorted: 'Гордыня, распущенность, излишества в еде и напитках, хвастливость, самодовольство, расточительность, лицемерие.',
+          task: 'Расширять горизонты других, а не только свои. Контроль гордыни.' },
+        { code:3, name:'Сатурн', symbol:'♄', color:'#4169E1', gender:'мужское',
+          direct: 'Прочность, статичность, устойчивость, постоянство, консерватизм, конкретность, пунктуальность, педантичность, осторожность, недоверчивость, замкнутость, сдержанность, серьёзность, логичность, скептицизм, формализм. Любит привычные формы, плохо приспосабливается к новому, опирается на традиционное. Питает уважение к авторитетам и старшим. Любит порядок и учёт, дисциплину, хорошо организован. Мышление конкретное, реалистичное, опирающееся на опыт. Трудолюбив, с развитым чувством долга, обязателен. Знакомства заводит с трудом; друзей имеет немного или не имеет совсем; как правило, одинок.',
+          distorted: 'Подозрительность, скупость, пессимизм, фатализм, узость кругозора, предельный консерватизм, трусость, стремление избежать перемен.',
+          task: 'Быть отцом, а не надзирателем. Контроль страха и пессимизма.' },
+        { code:2, name:'Уран', symbol:'♅', color:'#7B68EE', gender:'мужское',
+          direct: 'Нетрадиционность, оригинальность, тяга к новому, необычному, нестандартность мышления, стремление к преодолению традиций, непреклонная воля. Предельно независим, отвергает любые авторитеты, реформатор, идеалист, напорист и самоуверен. Изобретателен, мыслит широкими, общими и абстрактными категориями, отвергает прошлое, весь в будущем. Способен неожиданно изменить свою позицию; хороший организатор, вдохновитель, носитель новых идей, демократичен и дружелюбен, отвергает сословные и кастовые деления, не терпит контроля. Материальные трудности его не пугают.',
+          distorted: 'Эксцентричность, экзальтированность, фанатизм, авторитарность, властность, вспыльчивость, отсутствие самоконтроля, страсть к разрушению.',
+          task: 'Соединять новое с вечным. Контроль бунтарства и хаоса.' },
+        { code:1, name:'Нептун', symbol:'♆', color:'#1E90FF', gender:'женское',
+          direct: 'Романтичность и мечтательность, развитое воображение, чувствительность, сострадательность, способность к переживанию, эмоциональность, восприимчивость, тонкое чувство гармонии, симметрии, ритма, поэтические и музыкальные способности. Капризность и неустойчивость, частое пребывание в меланхолии. Влюбчив, сексуален. Стремится к компромиссу. Тяготеет к религии, мистике, способен к интуитивному постижению внутренней сущности вещей. Привязанность к прошлому, в мышлении — тяга к утопиям, мифам, некритичность, тонкое видение деталей.',
+          distorted: 'Склонность к иллюзиям, самообману, неспособность различать добро и зло, эротизм, болезненная впечатлительность, внушаемость, склонность к алкоголизму и наркомании.',
+          task: 'Воплощать мечты в реальность. Контроль иллюзий и зависимостей.' },
+        { code:0, name:'Плутон', symbol:'♇', color:'#8B008B', gender:'мужское',
+          direct: 'Активность, жесткость, напористость, внутренняя сила (часто прикрытая мягкостью проявлений), упорство, коллективизм, сильное организующее начало. Разрушитель старых форм, революционер и пропагандист. Выходит за пределы устоявшихся норм и правил. Активно участвует в создании и деятельности различных групп и организаций, массовых движений. Эмоциональная жизнь напряжённая, переживает всё очень серьёзно и глубоко, чувствителен, но ироничен, отвергает романтику и сентиментальность. Мышление конкретное, детализированное, стремится добраться до сути. Наблюдателен, способен к неожиданным и точным выводам.',
+          distorted: 'Групповщина, стадность, предельное подавление личности и отрицание прав личности перед волей большинства, крайняя страстность, жестокость, тяга к смерти, тенденция к саморазрушению, неспособность к самоконтролю, жажда власти и кровожадность.',
+          task: 'Трансформировать через созидание, а не через разрушение. Контроль жестокости.' }
+    ];
+
+    // ===================================================================
+    //  АРХИВ
+    // ===================================================================
+    const ARCHIVE_PERSONALITIES = [
+        { name: 'Пётр I', day:30, month:5, year:1706, emoji:'⚜️' },
+        { name: 'Екатерина II', day:2, month:5, year:1729, emoji:'👸' },
+        { name: 'Наполеон Бонапарт', day:15, month:8, year:1769, emoji:'👑' },
+        { name: 'Александр Пушкин', day:6, month:6, year:1799, emoji:'📖' },
+        { name: 'Фёдор Достоевский', day:11, month:11, year:1821, emoji:'📚' },
+        { name: 'Лев Толстой', day:9, month:9, year:1828, emoji:'📖' },
+        { name: 'Владимир Ленин', day:22, month:4, year:1870, emoji:'🔨' },
+        { name: 'Альберт Эйнштейн', day:14, month:3, year:1879, emoji:'🧠' },
+        { name: 'Мария Кюри', day:7, month:11, year:1867, emoji:'🔬' },
+        { name: 'Мэрилин Монро', day:1, month:6, year:1926, emoji:'🎬' },
+        { name: 'Владимир Путин', day:7, month:10, year:1952, emoji:'🏛️' }
+    ];
+
+    // ===================================================================
+    //  ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+    // ===================================================================
+    let fullData = [], startYear = 1706, currentOffset = 0;
+    let selectedPlanetCode = 1, parentImpulse = 0;
+    let currentKeyNumber = 0, currentCycleDigits = [], currentAllDigits = [];
+
+    function getPlanet(code) { return PLANETS.find(p => p.code === code) || PLANETS[0]; }
+
+    // ===================================================================
+    //  РАСЧЁТ
+    // ===================================================================
+    function calculateData(day, month, year) {
+        const multiplier = parseInt(String(month).padStart(2,'0') + String(day).padStart(2,'0'));
+        const keyNumber = year * multiplier;
+        const digits = String(keyNumber).split('').map(Number);
+        const parent = digits[0] || 0;
+        let cycleDigits = digits.slice(1);
+        if (!cycleDigits.length) cycleDigits = [parent];
+        const isBeforeMay9 = (month < 5) || (month === 5 && day <= 9);
+        const cycleLength = isBeforeMay9 ? 5 : 6;
+        const data = [];
+        for (let age = 0; age < 102; age++) {
+            const currentYear = year + age;
+            let code, isParent = false;
+            if (age === 0) { code = parent; isParent = true; }
+            else { code = cycleDigits[(age - 1) % cycleDigits.length]; }
+            data.push({ year: currentYear, age, code, planet: getPlanet(code), cycleLength, isParent, isActive: !isParent });
+        }
+        return { data, keyNumber, multiplier, parentImpulse: parent, cycleDigits, allDigits: digits };
+    }
+
+    function findRepeats(cycleDigits) {
+        const repeats = [];
+        for (let i = 0; i < cycleDigits.length - 1; i++) {
+            if (cycleDigits[i] === cycleDigits[i+1]) repeats.push({ code: cycleDigits[i], pos: i, planet: getPlanet(cycleDigits[i]) });
+        }
+        if (cycleDigits.length > 1 && cycleDigits[cycleDigits.length-1] === cycleDigits[0]) {
+            repeats.push({ code: cycleDigits[0], pos: 'стык', planet: getPlanet(cycleDigits[0]) });
+        }
+        return repeats;
+    }
+
+    function findTripleRepeats(cycleDigits) {
+        const result = [];
+        for (let i = 0; i < cycleDigits.length - 2; i++) {
+            if (cycleDigits[i] === cycleDigits[i+1] && cycleDigits[i+1] === cycleDigits[i+2]) {
+                result.push({ code: cycleDigits[i], planet: getPlanet(cycleDigits[i]), pos: i });
+            }
+        }
+        return result;
+    }
+
+    function calcMission(digits) {
+        const sum = digits.reduce((a,b) => a + b, 0);
+        const pair = sum > 9 ? parseInt(String(sum).slice(0,2)) : sum;
+        const pairStr = String(pair);
+        let path = String(sum).split('').join('-');
+        let current = sum;
+        while (current > 9) {
+            const next = String(current).split('').map(Number).reduce((a,b) => a + b, 0);
+            path += `-${next}`;
+            current = next;
+        }
+        const finalDigit = current;
+        const planet = getPlanet(finalDigit);
+        let meaning = 'Интеграция всех планет. Универсальная душа.';
+        let warning = '';
+        if ([10,19,28,37,46].includes(pair)) {
+            warning = '⚠️ Колесо Фортуны (10) — может вознести или раздавить. Развивай эмоциональный интеллект.';
+        }
+        return { sum, pair, pairStr, path, finalDigit, planet, meaning, warning };
+    }
+
+    // ===================================================================
+    //  ИНТЕРФЕЙС
+    // ===================================================================
+    function setDate(day, month, year) {
+        document.getElementById('day').value = day;
+        document.getElementById('month').value = month;
+        document.getElementById('year').value = year;
+        buildChart();
+        switchTab('tab-chart');
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+        if (tabId === 'tab-archive') renderArchive();
+        if (tabId === 'tab-planets') renderPlanetsHandbook();
+    }
+
+    function buildChart() {
+        const day = +document.getElementById('day').value || 1;
+        const month = +document.getElementById('month').value || 1;
+        const year = +document.getElementById('year').value || 1700;
+        startYear = year; currentOffset = 0;
+        const res = calculateData(day, month, year);
+        fullData = res.data;
+        parentImpulse = res.parentImpulse;
+        currentKeyNumber = res.keyNumber;
+        currentCycleDigits = res.cycleDigits;
+        currentAllDigits = res.allDigits;
+
+        document.getElementById('keyValue').textContent = currentKeyNumber.toLocaleString();
+        document.getElementById('cycleInfo').textContent = 'Цикл: ' + currentCycleDigits.join(' → ') + ' (повторяется)';
+
+        const display = fullData.slice(0,10);
+        drawChart(display);
+        updatePlanetList(display);
+        updateStats(display);
+        updateVector(display);
+        generateProfile(display);
+        showPlanetDetail(selectedPlanetCode);
+        document.getElementById('rangeLabel').textContent = startYear + '–' + (startYear+9);
+        if (analysisOpen) generateProfile(display);
+    }
+
+    function shiftYears(delta) {
+        if (!fullData.length) return;
+        currentOffset = Math.min(Math.max(0, currentOffset + delta), fullData.length - 10);
+        if (currentOffset < 0) currentOffset = 0;
+        const display = fullData.slice(currentOffset, currentOffset+10);
+        if (display.length) {
+            drawChart(display);
+            updatePlanetList(display);
+            updateStats(display);
+            updateVector(display);
+            generateProfile(display);
+            document.getElementById('rangeLabel').textContent = display[0].year + '–' + (display[display.length-1].year);
+            if (analysisOpen) generateProfile(display);
+        }
+    }
+
+    let analysisOpen = false;
+    function toggleAnalysis() {
+        analysisOpen = !analysisOpen;
+        document.getElementById('analysisContent').classList.toggle('open');
+        document.querySelector('.toggle-btn').textContent = analysisOpen ? '📜 Скрыть анализ' : '📜 Показать анализ';
+    }
+
+    // ===================================================================
+    //  ОТРИСОВКА ГРАФИКА (адаптировано для iPhone)
+    // ===================================================================
+    function drawChart(data) {
+        const canvas = document.getElementById('chartCanvas');
+        const container = canvas.parentElement;
+        const rect = container.getBoundingClientRect();
+        const W = Math.max(800, rect.width - 20);
+        const H = 400;
+        
+        canvas.width = W * 1.5;
+        canvas.height = H * 1.5;
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        
+        const ctx = canvas.getContext('2d');
+        ctx.scale(1.5, 1.5);
+        
+        const pad = { top: 25, right: 25, bottom: 40, left: 40 };
+        const cw = W - pad.left - pad.right;
+        const ch = H - pad.top - pad.bottom;
+        
+        ctx.clearRect(0, 0, W, H);
+
+        for (let i = 0; i <= 9; i++) {
+            const y = pad.top + ch - (i / 9) * ch;
+            ctx.beginPath();
+            ctx.moveTo(pad.left, y);
+            ctx.lineTo(W - pad.right, y);
+            ctx.strokeStyle = i === 0 || i === 9 ? 'rgba(255,215,0,0.10)' : 'rgba(255,255,255,0.03)';
+            ctx.stroke();
+            const p = getPlanet(i);
+            ctx.fillStyle = i === 0 || i === 9 ? 'rgba(255,215,0,0.4)' : 'rgba(255,255,255,0.2)';
+            ctx.font = '10px monospace';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(i + ' ' + p.symbol, pad.left - 8, y);
+        }
+
+        const n = data.length;
+        if (!n) {
+            ctx.fillStyle = '#5a6a7e';
+            ctx.font = '16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Нет данных', W / 2, H / 2);
+            return;
+        }
+
+        for (let i = 0; i < n; i++) {
+            const d = data[i];
+            const x = pad.left + (i / (n - 1 || 1)) * cw;
+            const y = pad.top + ch - (d.code / 9) * ch;
+            const p = d.planet;
+            
+            if (i > 0) {
+                const prev = data[i - 1];
+                const px = pad.left + ((i - 1) / (n - 1 || 1)) * cw;
+                const py = pad.top + ch - (prev.code / 9) * ch;
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = p.color + '60';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+
+            const r = d.isParent ? 16 : 11;
+            const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+            grad.addColorStop(0, p.color + (d.isParent ? '90' : '60'));
+            grad.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.shadowColor = p.color;
+            ctx.shadowBlur = d.isParent ? 20 : 12;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(x, y, d.isParent ? 6 : 4.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            if (d.isParent) {
+                ctx.strokeStyle = '#f6d365';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.arc(x, y, 11, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = 'rgba(246,211,101,0.8)';
+                ctx.font = '8px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText('⚡', x, y - 11);
+            }
+
+            ctx.fillStyle = d.isParent ? 'rgba(246,211,101,0.7)' : 'rgba(255,255,255,0.3)';
+            ctx.font = d.isParent ? '10px monospace' : '9px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(d.year, x, H - pad.bottom + 4);
+        }
+
+        ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        ctx.font = '8px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('ГОДЫ', W / 2, pad.top - 2);
+        
+        ctx.save();
+        ctx.translate(10, H / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+        ctx.font = '8px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('ПЛАНЕТЫ', 0, 0);
+        ctx.restore();
+    }
+
+    // ===================================================================
+    //  ЭКСПОРТ PNG
+    // ===================================================================
+    function exportPNG() {
+        try {
+            const canvas = document.getElementById('chartCanvas');
+            const link = document.createElement('a');
+            link.download = 'graf_zhizni.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } catch (e) {
+            alert('На этом устройстве сохранение PNG недоступно. Попробуйте сделать скриншот.');
+        }
+    }
+
+    // ===================================================================
+    //  UI ОБНОВЛЕНИЯ
+    // ===================================================================
+    function updatePlanetList(data) {
+        const container = document.getElementById('planetList');
+        const counts = {};
+        data.filter(d => !d.isParent).forEach(d => counts[d.code] = (counts[d.code] || 0) + 1);
+        const allCodes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        container.innerHTML = allCodes.map(code => {
+            const p = getPlanet(code);
+            const count = counts[code] || 0;
+            const active = count > 0;
+            const isParent = code === parentImpulse;
+            const sel = code === selectedPlanetCode;
+            return `<div class="planet-card ${sel ? 'active' : ''} ${!active && !isParent ? 'inactive' : ''}" onclick="selectPlanet(${code})">
+                <span class="symbol" style="color:${active ? p.color : '#5a6a7e'}">${p.symbol}</span>
+                <span class="name" style="color:${active ? p.color : '#5a6a7e'}">${p.name} ${isParent ? '⚡' : ''}</span>
+            </div>`;
+        }).join('');
+    }
+
+    function selectPlanet(code) {
+        selectedPlanetCode = code;
+        showPlanetDetail(code);
+        showPlanetScroll(code);
+        updatePlanetList(fullData.slice(currentOffset, currentOffset + 10));
+    }
+
+    function showPlanetDetail(code) {
+        const p = getPlanet(code);
+        const container = document.getElementById('planetDetail');
+        const active = fullData.some(d => d.code === code && d.isActive);
+        const parent = code === parentImpulse;
+        let status = parent ? '⚡ Родительский импульс (не входит в цикл)' : active ? '✅ Активна в цикле' : '⭕ Неактивна — зона роста';
+        container.innerHTML = `<h3 style="color:${p.color}">${p.symbol} ${p.name}</h3>
+            <div style="color:#6a7a8e;font-size:0.7rem;">${status}</div>
+            <div style="color:#66dd88;font-size:0.8rem;margin-top:6px;"><strong>✓ Прямые:</strong> ${p.direct}</div>
+            <div style="color:#ff6b6b;font-size:0.8rem;margin-top:4px;"><strong>✗ Искажённые:</strong> ${p.distorted}</div>`;
+    }
+
+    function showPlanetScroll(code) {
+        const p = getPlanet(code);
+        const c = document.getElementById('scrollContent');
+        c.innerHTML = `<div style="font-size:1.1rem;font-weight:600;color:${p.color}">${p.symbol} ${p.name}</div>
+            <div class="section light"><div class="s-title">☀️ Прямые качества</div><p>${p.direct}</p></div>
+            <div class="section shadow"><div class="s-title">🌑 Искажённые качества</div><p>${p.distorted}</p></div>
+            <div class="section task"><div class="s-title">⚡ Задача</div><p>${p.task}</p></div>`;
+        document.getElementById('scrollTitle').textContent = `📜 Свиток: ${p.symbol} ${p.name}`;
+        document.getElementById('scrollSub').textContent = 'Прямые и искажённые качества';
+    }
+
+    function updateStats(data) {
+        const active = data.filter(d => !d.isParent);
+        const counts = {};
+        active.forEach(d => counts[d.code] = (counts[d.code] || 0) + 1);
+        let maxC = 0, maxN = 0;
+        for (const [c, n] of Object.entries(counts)) if (n > maxN) { maxN = n; maxC = +c; }
+        const dom = getPlanet(maxC), par = getPlanet(parentImpulse);
+        const names = Object.keys(counts).map(Number).sort().map(c => getPlanet(c).name).join(', ');
+        document.getElementById('statsBar').innerHTML = `
+            <div class="stat-item">⚡ Импульс: <span class="value">${par.symbol} ${par.name}</span></div>
+            <div class="stat-item">🔑 Доминанта: <span class="value" style="color:${dom.color}">${dom.symbol} ${dom.name}</span></div>
+            <div class="stat-item">🌌 Активные: <span class="value" style="color:#66dd88;">${names}</span></div>
+            <div class="stat-item">🔄 Цикл: <span class="value">${data[0]?.cycleLength || 6} лет</span></div>
+        `;
+    }
+
+    function updateVector(data) {
+        if (data.length < 2) { document.getElementById('vectorType').textContent = '—'; document.getElementById('vectorDesc').textContent = ''; return; }
+        const diff = data[1].code - data[0].code;
+        let type, desc;
+        if (diff > 3) { type = '🚀 Восходящий'; desc = 'Амбициозность, лидерство'; } 
+        else if (diff < -3) { type = '📉 Нисходящий'; desc = 'Служение, глубина'; } 
+        else if (Math.abs(diff) <= 1) { type = '↔️ Горизонтальный'; desc = 'Гибкость, переключение'; } 
+        else { type = '🌀 Сбалансированный'; desc = 'Гармоничное развитие'; }
+        document.getElementById('vectorType').textContent = type;
+        document.getElementById('vectorDesc').textContent = desc + ` (${data[0].code}→${data[1].code})`;
+    }
+
+    // ===================================================================
+    //  ГЛУБИННЫЙ ПРОФИЛЬ
+    // ===================================================================
+    function generateProfile(data) {
+        const container = document.getElementById('scrollContent');
+        const active = data.filter(d => !d.isParent);
+        const counts = {};
+        active.forEach(d => counts[d.code] = (counts[d.code] || 0) + 1);
+        let maxC = 0, maxN = 0;
+        for (const [c, n] of Object.entries(counts)) if (n > maxN) { maxN = n; maxC = +c; }
+        const dom = getPlanet(maxC), par = getPlanet(parentImpulse);
+        const first = data[0].code, second = data[1]?.code || first;
+        const diff = second - first;
+        let vtype = '';
+        if (diff > 3) vtype = 'Восходящий';
+        else if (diff < -3) vtype = 'Нисходящий';
+        else if (Math.abs(diff) <= 1) vtype = 'Горизонтальный';
+        else vtype = 'Сбалансированный';
+
+        const names = Object.keys(counts).map(Number).sort().map(c => getPlanet(c).name);
+
+        let arch = '';
+        if (dom.code === 6) arch = 'Дипломат-стратег';
+        else if (dom.code === 9) arch = 'Прирожденный лидер';
+        else if (dom.code === 0 || dom.code === 1) arch = 'Мистик-стратег';
+        else if (dom.code === 4) arch = 'Экспансионист';
+        else if (dom.code === 5) arch = 'Воин-защитник';
+        else if (dom.code === 7) arch = 'Коммуникатор';
+        else if (dom.code === 8) arch = 'Хранитель традиций';
+        else if (dom.code === 3) arch = 'Строитель систем';
+        else arch = 'Гармоничная личность';
+
+        const polarity = (() => {
+            const d = Math.abs(par.code - dom.code);
+            if (par.code === dom.code) return 'Импульс и доминанта совпадают. Цельная личность.';
+            if (d > 4) return 'Импульс и доминанта в оппозиции. Искатель, примиряющий начала.';
+            if (d > 2) return 'Импульс и доминанта в напряжении. Умеете извлекать силу из конфликтов.';
+            return 'Импульс и доминанта близки. Гармоничное развитие.';
+        })();
+
+        const repeats = findRepeats(currentCycleDigits);
+        const triples = findTripleRepeats(currentCycleDigits);
+        let repeatHTML = '';
+        if (triples.length) {
+            repeatHTML = triples.map(t => `<div class="warning-box"><div class="w-title">${t.planet.symbol} ${t.planet.name} ×3</div>Интенсивное проживание архетипа.</div>`).join('');
+        } else if (repeats.length) {
+            repeatHTML = repeats.map(r => `<div class="warning-box"><div class="w-title">${r.planet.symbol} ${r.planet.name} ×2</div>Повторяющиеся сценарии.</div>`).join('');
+        } else {
+            repeatHTML = '<div style="color:#6a7a8e;font-size:0.8rem;">Нет повторяющихся цифр подряд.</div>';
+        }
+
+        const mission = calcMission(currentAllDigits);
+
+        container.innerHTML = `
+            <div style="font-size:1.1rem;font-weight:600;">${arch}</div>
+            <div style="color:#7a8aa0;margin:4px 0 8px;">Импульс: ${par.symbol} ${par.name} → ${getPlanet(second).symbol} ${getPlanet(second).name} (${vtype})</div>
+            <div class="profile-tags">
+                <span>Доминанта: ${dom.symbol} ${dom.name}</span>
+                <span>Импульс: ${par.symbol} ${par.name}</span>
+                <span>Цикл: ${currentCycleDigits.join(' → ')}</span>
+            </div>
+
+            <div class="section mission">
+                <div class="s-title">🎯 Миссия</div>
+                <p><strong>Сумма:</strong> ${mission.sum}<br><strong>Путь:</strong> ${mission.path}<br><strong>Связка ${mission.pairStr}:</strong> ${mission.meaning}${mission.warning ? `<br><br><span style="color:#ff6b6b;">${mission.warning}</span>` : ''}</p>
+            </div>
+
+            <div class="section marriage">
+                <div class="s-title">💔 Повторы</div>
+                ${repeatHTML}
+            </div>
+
+            <div class="section" style="border-left-color:#f6d365;">
+                <div class="s-title" style="color:#f6d365;">🧬 Полярность</div>
+                <p>${polarity}</p>
+            </div>
+
+            <div style="padding:10px 12px;background:rgba(255,215,0,0.03);border-radius:12px;border:1px solid rgba(255,215,0,0.06);margin-top:8px;">
+                <div style="color:#6a7a8e;font-size:0.55rem;text-transform:uppercase;letter-spacing:1px;">Активные архетипы</div>
+                <div style="margin-top:2px;color:#c0cde0;font-size:0.85rem;">${names.join(' • ')}</div>
+            </div>
+        `;
+        document.getElementById('scrollTitle').textContent = '🧬 Глубинный профиль';
+        document.getElementById('scrollSub').textContent = `${par.symbol} ${par.name} → ${getPlanet(second).symbol} ${getPlanet(second).name} • ${vtype}`;
+    }
+
+    // ===================================================================
+    //  АРХИВ
+    // ===================================================================
+    let archiveData = [];
+
+    function computeArchiveEntry(person) {
+        const { day, month, year, name, emoji } = person;
+        const res = calculateData(day, month, year);
+        const digits = res.allDigits;
+        const parent = res.parentImpulse;
+        const counts = {};
+        res.cycleDigits.forEach(c => counts[c] = (counts[c] || 0) + 1);
+        let maxC = 0, maxN = 0;
+        for (const [c, n] of Object.entries(counts)) if (n > maxN) { maxN = n; maxC = +c; }
+        const dom = getPlanet(maxC);
+        const mission = calcMission(digits);
+        return {
+            ...person,
+            keyNumber: res.keyNumber,
+            parent: getPlanet(parent),
+            dominant: dom,
+            mission: mission,
+            cycle: res.cycleDigits
+        };
+    }
+
+    function renderArchive() {
+        archiveData = ARCHIVE_PERSONALITIES.map(p => computeArchiveEntry(p));
+        const search = document.getElementById('archiveSearch').value.toLowerCase();
+        const filtered = archiveData.filter(p =>
+            p.name.toLowerCase().includes(search) ||
+            String(p.year).includes(search) ||
+            p.mission.pairStr.includes(search)
+        );
+        const tbody = document.getElementById('archiveBody');
+        tbody.innerHTML = filtered.map(p => `
+            <tr onclick="setDate(${p.day},${p.month},${p.year})" style="cursor:pointer;">
+                <td>${p.emoji} ${p.name}</td>
+                <td>${String(p.day).padStart(2,'0')}.${String(p.month).padStart(2,'0')}.${p.year}</td>
+                <td style="color:#f6d365;">${p.keyNumber.toLocaleString()}</td>
+                <td>${p.parent.symbol} ${p.parent.name}</td>
+                <td style="color:${p.dominant.color}">${p.dominant.symbol} ${p.dominant.name}</td>
+                <td>${p.mission.pairStr} → ${p.mission.finalDigit}</td>
+                <td style="text-align:center;"><button class="load-btn" onclick="event.stopPropagation();setDate(${p.day},${p.month},${p.year})">📊</button></td>
+            </tr>
+        `).join('');
+        document.getElementById('archiveCount').textContent = `Всего: ${filtered.length} из ${archiveData.length}`;
+    }
+
+    function filterArchive() { renderArchive(); }
+
+    // ===================================================================
+    //  МЕТОДИЧКА
+    // ===================================================================
+    function renderPlanetsHandbook() {
+        const container = document.getElementById('planetsHandbook');
+        const sorted = [...PLANETS].sort((a, b) => b.code - a.code);
+        container.innerHTML = sorted.map(p => `
+            <div class="planet-card-big">
+                <div class="header">
+                    <span class="symbol" style="color:${p.color}">${p.symbol}</span>
+                    <span class="name" style="color:${p.color}">${p.name}</span>
+                    <span class="gender-tag">${p.gender}</span>
+                </div>
+                <div class="direct"><strong>✓ Прямые:</strong> ${p.direct}</div>
+                <div class="distorted"><strong>✗ Искажённые:</strong> ${p.distorted}</div>
+            </div>
+        `).join('');
+    }
+
+    // ===================================================================
+    //  СТАРТ
+    // ===================================================================
+    window.onload = function() {
+        buildChart();
+        renderArchive();
+        renderPlanetsHandbook();
+    };
+</script>
+</body>
+</html>
